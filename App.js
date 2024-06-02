@@ -10,9 +10,22 @@ import { theme } from "./colors.js";
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
+  const [toDos, setToDos] = useState({});
   const travel = () => setWorking(false);    //travel을 호출하면 setWorking(false)
   const work = () => setWorking(true);    //work를 호출하면 setWorking(true)
   const onChangeText = (payload) => setText(payload);   //유저가 뭔가 입력하면 setText 실행(payload : 전송되는 데이터나 정보를 지칭)
+  const addToDo = () => {
+    if(text == ""){
+      return;      //todo가 비어있다면 아무것도 하지 않고 return
+    }
+    const newToDos = Object.assign(     //여러 object를 결합하기 위해 object assign 사용
+      {},   //먼저, 비어있는 object 결합(이게 target object임)
+      toDos,{[Date.now()]: {text, work: working},     //그리고 이전 todo를 새로운 todo와 합침
+    });
+    setToDos(newToDos);
+    setText("");    //공란으로 만들기
+  };
+  console.log(toDos);   //work의 id값과 travel의 id값이 다르고, 각각 true/false 인 것을 확인(2개의 object를 state 수정 없이 결합)
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -27,7 +40,9 @@ export default function App() {
       </View>
 
       <TextInput
+        onSubmitEditing={addToDo}
         onChangeText={onChangeText} 
+        returnKeyType="done"
         value = {text}
         placeholder={working ? "할 일을 추가하세요" : "어디로 놀러 갈까요?"} 
         style={styles.input}
@@ -43,6 +58,7 @@ export default function App() {
   // 1. 데이터의 전달: payload는 이벤트 객체 전체 대신 중요한 데이터(텍스트)를 전달할 때 사용되며, 이는 함수가 어떤 종류의 데이터를 받을지 명확하게 나타냄
   // 2.명확성: 함수 인자의 이름을 payload로 지정함으로써, 코드 읽는 사람이 해당 함수가 무엇을 기대하는지 더 명확하게 이해할 수 있음
   // 3.일반적인 관례: 소프트웨어 개발에서 payload는 전송되는 데이터나 정보의 내용을 나타내는 데 자주 사용되며, 이는 특히 API 요청이나 상태 관리에서 자주 보이는 패턴
+// onSubmitEditing : 유저가 키패드에서 submit 누르면 발생하는 이벤트
 
 const styles = StyleSheet.create({
   container: {
