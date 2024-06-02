@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, {useState} from "react";
-import { StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, TouchableWithoutFeedback, Pressable, TextInput } from 'react-native';     
+import { StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, TouchableWithoutFeedback, Pressable, TextInput, ScrollView } from 'react-native';     
 //TouchableOpacity : 누르는 이벤트를 listen할 준비가 된 view
 //TouchableHighlight : 눌렀을 때 배경색이 바뀌는 등의 설정 가능
 //TouchableWithoutFeedback : 화면의 가장 위에서 일어나는 탭 이벤트를 listen
@@ -18,10 +18,8 @@ export default function App() {
     if(text == ""){
       return;      //todo가 비어있다면 아무것도 하지 않고 return
     }
-    const newToDos = Object.assign(     //여러 object를 결합하기 위해 object assign 사용
-      {},   //먼저, 비어있는 object 결합(이게 target object임)
-      toDos,{[Date.now()]: {text, work: working},     //그리고 이전 todo를 새로운 todo와 합침
-    });
+    const newToDos = {...toDos, [Date.now()]: {text, work: working }}    //object assign 대신 ES6로 만들기
+                      // toDos의 내용을 가진 object 만들기를 원할때 콤마를 사용하고 new todo 적기
     setToDos(newToDos);
     setText("");    //공란으로 만들기
   };
@@ -47,6 +45,14 @@ export default function App() {
         placeholder={working ? "할 일을 추가하세요" : "어디로 놀러 갈까요?"} 
         style={styles.input}
       ></TextInput>
+
+      <ScrollView>
+        {Object.keys(toDos).map((key) => (    //todo 안에 있는 key들 살펴보기(모든 id들을 말함)
+          <View style={styles.toDo} key={key}>
+            <Text style={styles.toDoText}>{toDos[key].text}</Text>
+          </View>
+        ))}
+      </ScrollView>
 
     </View>
   );
@@ -81,7 +87,19 @@ const styles = StyleSheet.create({
     paddingHorizontal:15,
     paddingVertical : 20,
     borderRadius : 30,
-    marginTop : 20,
+    marginVertical : 20,
     fontSize : 16
+  },
+  toDo:{
+    backgroundColor: theme.toDoBg,
+    marginBottom: 10,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 15,
+  },
+  toDoText:{
+    color:"white",
+    fontSize: 16,
+    fontWeight: 500
   }
 });
