@@ -6,6 +6,7 @@ import { StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, Touchable
 //TouchableWithoutFeedback : 화면의 가장 위에서 일어나는 탭 이벤트를 listen
 //Pressable : TouchableWithoutFeedback의 새 버전이라고 볼 수 있음(더 다양한 속성이 많음)
 import { theme } from "./colors.js";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
   const [working, setWorking] = useState(true);
@@ -18,7 +19,7 @@ export default function App() {
     if(text == ""){
       return;      //todo가 비어있다면 아무것도 하지 않고 return
     }
-    const newToDos = {...toDos, [Date.now()]: {text, work: working }}    //object assign 대신 ES6로 만들기
+    const newToDos = {...toDos, [Date.now()]: {text, working }}    //object assign 대신 ES6로 만들기
                       // toDos의 내용을 가진 object 만들기를 원할때 콤마를 사용하고 new todo 적기
     setToDos(newToDos);
     setText("");    //공란으로 만들기
@@ -48,9 +49,10 @@ export default function App() {
 
       <ScrollView>
         {Object.keys(toDos).map((key) => (    //todo 안에 있는 key들 살펴보기(모든 id들을 말함)
+          toDos[key].working === working ?      //working 이면 보여주기
           <View style={styles.toDo} key={key}>
             <Text style={styles.toDoText}>{toDos[key].text}</Text>
-          </View>
+          </View> : null    //working이 아니면 보여주지 않기
         ))}
       </ScrollView>
 
