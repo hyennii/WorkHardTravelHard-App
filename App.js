@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, TouchableWithoutFeedback, Pressable, TextInput, ScrollView } from 'react-native';     
 //TouchableOpacity : 누르는 이벤트를 listen할 준비가 된 view
 //TouchableHighlight : 눌렀을 때 배경색이 바뀌는 등의 설정 가능
@@ -8,6 +8,8 @@ import { StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, Touchable
 import { theme } from "./colors.js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const STORAGE_KEY="@toDos"
+
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
@@ -15,13 +17,24 @@ export default function App() {
   const travel = () => setWorking(false);    //travel을 호출하면 setWorking(false)
   const work = () => setWorking(true);    //work를 호출하면 setWorking(true)
   const onChangeText = (payload) => setText(payload);   //유저가 뭔가 입력하면 setText 실행(payload : 전송되는 데이터나 정보를 지칭)
-  const addToDo = () => {
+  const saveToDos = async(toSave) => {     //toDos를 string으로 바꿔주고 await AsyncStorage.setItem 해줌
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))   //JSON.stringify는 object를 string으로 바꿔줌 
+  }
+  const loadToDos = async() => {
+    const s = await AsyncStorage.getItem(STORAGE_KEY)
+    setToDos(JSON.parse(s));   
+  };
+  useEffect(() => {
+    loadToDos();
+  }, []);
+  const addToDo = async () => {
     if(text == ""){
       return;      //todo가 비어있다면 아무것도 하지 않고 return
     }
     const newToDos = {...toDos, [Date.now()]: {text, working }}    //object assign 대신 ES6로 만들기
                       // toDos의 내용을 가진 object 만들기를 원할때 콤마를 사용하고 new todo 적기
     setToDos(newToDos);
+    await saveToDos(newToDos);
     setText("");    //공란으로 만들기
   };
   console.log(toDos);   //work의 id값과 travel의 id값이 다르고, 각각 true/false 인 것을 확인(2개의 object를 state 수정 없이 결합)
@@ -67,6 +80,7 @@ export default function App() {
   // 2.명확성: 함수 인자의 이름을 payload로 지정함으로써, 코드 읽는 사람이 해당 함수가 무엇을 기대하는지 더 명확하게 이해할 수 있음
   // 3.일반적인 관례: 소프트웨어 개발에서 payload는 전송되는 데이터나 정보의 내용을 나타내는 데 자주 사용되며, 이는 특히 API 요청이나 상태 관리에서 자주 보이는 패턴
 // onSubmitEditing : 유저가 키패드에서 submit 누르면 발생하는 이벤트
+// parse : string을 javascript object로 만들어줌
 
 const styles = StyleSheet.create({
   container: {
