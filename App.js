@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, {useEffect, useState} from "react";
-import { StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, TouchableWithoutFeedback, Pressable, TextInput, ScrollView } from 'react-native';     
+import { StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, TouchableWithoutFeedback, Pressable, TextInput, ScrollView, Alert } from 'react-native';     
 //TouchableOpacity : 누르는 이벤트를 listen할 준비가 된 view
 //TouchableHighlight : 눌렀을 때 배경색이 바뀌는 등의 설정 가능
 //TouchableWithoutFeedback : 화면의 가장 위에서 일어나는 탭 이벤트를 listen
@@ -38,6 +38,16 @@ export default function App() {
     setText("");    //공란으로 만들기
   };
   console.log(toDos);   //work의 id값과 travel의 id값이 다르고, 각각 true/false 인 것을 확인(2개의 object를 state 수정 없이 결합)
+
+  const deleteToDo = async(key) => {
+    Alert.alert("ToDo를 삭제하시겠습니까?", "확실한가요?");
+    return;
+    const newToDos = {...toDos}   //state의 내용으로 새로운 object 만들기
+    delete newToDos[key]    //delete 키워드를 이용해 newToDos 안에 있는 key 지우기
+    setToDos(newToDos);   //state 업데이트
+    await saveToDos(newToDos);    //위 행동을 Async storage에 저장
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -65,6 +75,9 @@ export default function App() {
           toDos[key].working === working ?      //working 이면 보여주기
           <View style={styles.toDo} key={key}>
             <Text style={styles.toDoText}>{toDos[key].text}</Text>
+            <TouchableOpacity onPress={() => deleteToDo(key)}>
+              <Text>x</Text>
+            </TouchableOpacity>
           </View> : null    //working이 아니면 보여주지 않기
         ))}
       </ScrollView>
@@ -112,6 +125,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 20,
     borderRadius: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   toDoText:{
     color:"white",
