@@ -9,14 +9,22 @@ import { theme } from "./colors.js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Fontisto} from '@expo/vector-icons';
 
-const STORAGE_KEY="@toDos"
+const STORAGE_KEY="@toDos";
+const WORKING_KEY="@working";   //working 상태를 asyncstorage에 저장하는 함수
 
 export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
-  const travel = () => setWorking(false);    //travel을 호출하면 setWorking(false)
-  const work = () => setWorking(true);    //work를 호출하면 setWorking(true)
+
+  const travel = () => {
+    setWorking(false);    //travel을 호출하면 setWorking(false)
+    saveWorking(false);
+  }    
+  const work = () => {
+    setWorking(true);    //work를 호출하면 setWorking(true)
+    saveWorking(true);
+  }
   const onChangeText = (payload) => setText(payload);   //유저가 뭔가 입력하면 setText 실행(payload : 전송되는 데이터나 정보를 지칭)
   const saveToDos = async(toSave) => {     //toDos를 string으로 바꿔주고 await AsyncStorage.setItem 해줌
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))   //JSON.stringify는 object를 string으로 바꿔줌 
@@ -25,8 +33,20 @@ export default function App() {
     const s = await AsyncStorage.getItem(STORAGE_KEY)
     setToDos(JSON.parse(s));   
   };
+  const saveWorking = async (isWorking) => {    //isWorking : 저장하려는 'working'상태
+    await AsyncStorage.setItem(WORKING_KEY, JSON.stringify(isWorking));
+                            //저장할 데이터 키, 'isWorking'값을 문자열로 변환
+  };
+  const loadWorking = async () => {   //loadWorking : 'working' 상태를 불러와서 설정
+    const isWorking = await AsyncStorage.getItem(WORKING_KEY);
+    if (isWorking !== null) {
+      setWorking(JSON.parse(isWorking));
+    }
+  };
+  // saveWorking, loadWorking : 'working'상태를 asyncstorage에 저장하고 불러오는 역할
   useEffect(() => {
     loadToDos();
+    loadWorking();
   }, []);
   const addToDo = async () => {
     if(text == ""){
