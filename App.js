@@ -7,6 +7,7 @@ import { StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, Touchable
 //Pressable : TouchableWithoutFeedback의 새 버전이라고 볼 수 있음(더 다양한 속성이 많음)
 import { theme } from "./colors.js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Fontisto} from '@expo/vector-icons';
 
 const STORAGE_KEY="@toDos"
 
@@ -40,12 +41,20 @@ export default function App() {
   console.log(toDos);   //work의 id값과 travel의 id값이 다르고, 각각 true/false 인 것을 확인(2개의 object를 state 수정 없이 결합)
 
   const deleteToDo = async(key) => {
-    Alert.alert("ToDo를 삭제하시겠습니까?", "확실한가요?");
+    Alert.alert(
+      "ToDo를 삭제하시겠습니까?", 
+      "확실한가요?", [
+      { text : "취소"},
+      { text : "삭제", 
+      style : "destructive",
+      onPress : async() => {
+        const newToDos = {...toDos}   //state의 내용으로 새로운 object 만들기
+        delete newToDos[key]    //delete 키워드를 이용해 newToDos 안에 있는 key 지우기
+        setToDos(newToDos);   //state 업데이트
+        await saveToDos(newToDos);    //위 행동을 Async storage에 저장
+      }},
+    ]);
     return;
-    const newToDos = {...toDos}   //state의 내용으로 새로운 object 만들기
-    delete newToDos[key]    //delete 키워드를 이용해 newToDos 안에 있는 key 지우기
-    setToDos(newToDos);   //state 업데이트
-    await saveToDos(newToDos);    //위 행동을 Async storage에 저장
   };
 
   return (
@@ -76,7 +85,7 @@ export default function App() {
           <View style={styles.toDo} key={key}>
             <Text style={styles.toDoText}>{toDos[key].text}</Text>
             <TouchableOpacity onPress={() => deleteToDo(key)}>
-              <Text>x</Text>
+            <Fontisto name="trash" size={18} color={theme.grey} />
             </TouchableOpacity>
           </View> : null    //working이 아니면 보여주지 않기
         ))}
