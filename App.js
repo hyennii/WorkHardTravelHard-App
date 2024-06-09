@@ -54,7 +54,7 @@ export default function App() {
     if(text == ""){
       return;      //todo가 비어있다면 아무것도 하지 않고 return
     }
-    const newToDos = {...toDos, [Date.now()]: {text, working }}    //object assign 대신 ES6로 만들기
+    const newToDos = {...toDos, [Date.now()]: {text, working, done:false }};    //object assign 대신 ES6로 만들기
                       // toDos의 내용을 가진 object 만들기를 원할때 콤마를 사용하고 new todo 적기
     setToDos(newToDos);
     await saveToDos(newToDos);
@@ -94,6 +94,12 @@ export default function App() {
     setText("");
   };
 
+  const toggleDone = async (key) => { // 완료 상태 토글 함수 추가
+    const newToDos = {...toDos, [key]: { ...toDos[key], done: !toDos[key].done }};    //done 속성이 true면 false, false면 true로 변경
+    setToDos(newToDos);
+    await saveToDos(newToDos);
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -117,14 +123,23 @@ export default function App() {
       ></TextInput>
 
       <ScrollView>
-        {Object.keys(toDos).map((key) => (    //todo 안에 있는 key들 살펴보기(모든 id들을 말함)
+        {Object.keys(toDos)
+        .sort((a, b) => {   //sort메서드 : 두 항목을 비교하는 함수를 인수로 받음
+          if (toDos[a].done === toDos[b].done) return 0;    //두 항목의 상태가 동일한지 확인후 동일하면 그대로 둠
+          if (toDos[a].done) return 1;    //a의 완료상태가 true인경우 b보다 뒤에 위치시켜야 하기때문에 return 1을 반환하여 두번째 항목을 앞으로 이동시킴
+          return -1;    //b가 a보다 먼저 나와야 하므로 return -1을 반환하여 첫번째 항목을 앞으로 이동
+        }) // 완료된 항목을 하단에 표시    
+        .map((key) => (    //todo 안에 있는 key들 살펴보기(모든 id들을 말함)
           toDos[key].working === working ?      //working 이면 보여주기
           <View style={styles.toDo} key={key}>
-            <Text style={styles.toDoText}>{toDos[key].text}</Text>
+            <Text style={[styles.toDoText, toDos[key].done ? styles.doneText : null]}>{toDos[key].text}</Text> 
             <View style={styles.icons}> 
                 <TouchableOpacity onPress={() => startEditing(key)}> 
                   <MaterialIcons name="edit" size={18} color={theme.grey} />
                 </TouchableOpacity>
+                <TouchableOpacity onPress={() => toggleDone(key)}> 
+                    <Fontisto name={toDos[key].done ? "checkbox-active" : "checkbox-passive"} size={18} color={theme.grey} />
+                  </TouchableOpacity>
                 <TouchableOpacity onPress={() => deleteToDo(key)}> 
                   <Fontisto name="trash" size={18} color={theme.grey} />
                 </TouchableOpacity>
@@ -184,6 +199,9 @@ const styles = StyleSheet.create({
     color:"white",
     fontSize: 16,
     fontWeight: 500
+  },
+  doneText: { 
+    textDecorationLine: "line-through",
   },
   icons: { 
     flexDirection: "row",
