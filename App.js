@@ -8,6 +8,7 @@ import { StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, Touchable
 import { theme } from "./colors.js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Fontisto} from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const STORAGE_KEY="@toDos";
 const WORKING_KEY="@working";   //working 상태를 asyncstorage에 저장하는 함수
@@ -16,6 +17,7 @@ export default function App() {
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({});
+  const [editingKey, setEditingKey] = useState(null); // 수정 중인 ToDo의 키
 
   const travel = () => {
     setWorking(false);    //travel을 호출하면 setWorking(false)
@@ -77,6 +79,21 @@ export default function App() {
     return;
   };
 
+  const startEditing = (key) => { // 수정 시작 함수 추가
+    setEditingKey(key);
+    setText(toDos[key].text);
+  };
+  const editToDo = async () => { // 수정 완료 함수 추가
+    if (text === "") {
+      return;
+    }
+    const newToDos = {...toDos, [editingKey]: { ...toDos[editingKey], text }};
+    setToDos(newToDos);
+    await saveToDos(newToDos);
+    setEditingKey(null);
+    setText("");
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -91,7 +108,7 @@ export default function App() {
       </View>
 
       <TextInput
-        onSubmitEditing={addToDo}
+        onSubmitEditing={editingKey ? editToDo : addToDo}    
         onChangeText={onChangeText} 
         returnKeyType="done"
         value = {text}
@@ -104,9 +121,14 @@ export default function App() {
           toDos[key].working === working ?      //working 이면 보여주기
           <View style={styles.toDo} key={key}>
             <Text style={styles.toDoText}>{toDos[key].text}</Text>
-            <TouchableOpacity onPress={() => deleteToDo(key)}>
-            <Fontisto name="trash" size={18} color={theme.grey} />
-            </TouchableOpacity>
+            <View style={styles.icons}> 
+                <TouchableOpacity onPress={() => startEditing(key)}> 
+                  <MaterialIcons name="edit" size={18} color={theme.grey} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteToDo(key)}> 
+                  <Fontisto name="trash" size={18} color={theme.grey} />
+                </TouchableOpacity>
+              </View>
           </View> : null    //working이 아니면 보여주지 않기
         ))}
       </ScrollView>
@@ -162,5 +184,9 @@ const styles = StyleSheet.create({
     color:"white",
     fontSize: 16,
     fontWeight: 500
-  }
+  },
+  icons: { 
+    flexDirection: "row",
+    gap: 10,
+  },
 });
